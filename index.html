@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KeNg Labs — Entscheidungsmatrix</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: #f0f0f0; padding: 28px; min-height: 100vh; }
+  
+  .header { margin-bottom: 28px; }
+  h1 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 16px; }
+  .context-box { background: #141414; border: 1px solid #2a2a2a; border-radius: 10px; padding: 16px 20px; font-size: 13px; color: #aaa; line-height: 1.7; }
+  .context-box strong { color: #fff; }
+
+  .section-title { font-size: 12px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; margin-top: 32px; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: #1e1e1e; }
+
+  /* KPI CARDS */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .kpi-card { background: #141414; border: 1px solid #222; border-radius: 10px; padding: 16px; text-align: center; }
+  .kpi-value { font-size: 28px; font-weight: 800; color: #f59e0b; margin-bottom: 4px; }
+  .kpi-label { font-size: 11px; color: #666; line-height: 1.4; }
+  .kpi-sub { font-size: 11px; color: #4ade80; margin-top: 4px; }
+
+  /* SCHMERZ TABELLE */
+  .pain-table { width: 100%; border-collapse: collapse; }
+  .pain-table th { background: #111; color: #555; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; padding: 10px 14px; text-align: left; border-bottom: 1px solid #1e1e1e; }
+  .pain-table td { padding: 11px 14px; border-bottom: 1px solid #161616; font-size: 13px; vertical-align: middle; }
+  .pain-table tr.winner td { background: #1a1200; }
+  .pain-table tr:hover td { background: #141414; }
+  .bar-wrap { background: #1a1a1a; border-radius: 3px; height: 6px; width: 160px; }
+  .bar { height: 6px; border-radius: 3px; transition: width 0.8s ease; }
+  .b1 { background: linear-gradient(90deg, #f59e0b, #fbbf24); width: 100%; }
+  .b2 { background: linear-gradient(90deg, #6366f1, #818cf8); width: 87%; }
+  .b3 { background: linear-gradient(90deg, #10b981, #34d399); width: 60%; }
+  .b4 { background: linear-gradient(90deg, #3b82f6, #60a5fa); width: 53%; }
+  .b5 { background: linear-gradient(90deg, #8b5cf6, #a78bfa); width: 27%; }
+  .b6 { background: linear-gradient(90deg, #ef4444, #f87171); width: 27%; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+  .tag-fire { background: #f59e0b22; color: #f59e0b; border: 1px solid #f59e0b44; }
+  .tag-high { background: #16a34a22; color: #4ade80; border: 1px solid #16a34a44; }
+  .tag-med { background: #3b82f622; color: #60a5fa; border: 1px solid #3b82f644; }
+  .tag-low { background: #ef444422; color: #f87171; border: 1px solid #ef444444; }
+  .rank-badge { font-size: 16px; }
+
+  /* SOCIAL MEDIA DEEP DIVE */
+  .sm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .sm-card { background: #141414; border: 1px solid #222; border-radius: 10px; padding: 16px; }
+  .sm-title { font-size: 12px; color: #888; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .sm-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .sm-label { font-size: 12px; color: #ccc; max-width: 200px; }
+  .sm-count { font-size: 12px; font-weight: 700; color: #f59e0b; }
+  .mini-bar-wrap { background: #1a1a1a; border-radius: 2px; height: 4px; flex: 1; margin: 0 10px; }
+  .mini-bar { height: 4px; border-radius: 2px; background: #f59e0b; }
+
+  /* KI READINESS */
+  .ki-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .ki-card { background: #141414; border: 1px solid #222; border-radius: 10px; padding: 16px; text-align: center; }
+  .ki-value { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+  .ki-label { font-size: 11px; color: #666; }
+  .ki-high { color: #4ade80; }
+  .ki-med { color: #fbbf24; }
+  .ki-low { color: #f87171; }
+
+  /* AUTOMATISIERUNG */
+  .auto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .auto-item { background: #141414; border: 1px solid #222; border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .auto-item.top { border-color: #f59e0b44; background: #1a1200; }
+  .auto-label { font-size: 12px; color: #ccc; }
+  .auto-count { font-size: 13px; font-weight: 700; color: #f59e0b; }
+
+  /* WEITERBILDUNG */
+  .wb-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .wb-card { background: #141414; border: 1px solid #222; border-radius: 10px; padding: 14px; text-align: center; }
+  .wb-value { font-size: 22px; font-weight: 800; color: #6366f1; margin-bottom: 4px; }
+  .wb-label { font-size: 11px; color: #666; line-height: 1.4; }
+
+  /* VARIANTEN */
+  .variants { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .variant-card { background: #141414; border: 2px solid #222; border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; position: relative; }
+  .variant-card:hover { border-color: #444; transform: translateY(-2px); }
+  .variant-card.selected { border-color: #f59e0b; background: #140f00; }
+  .variant-card.recommended { border-color: #16a34a66; }
+  .rec-badge { position: absolute; top: -1px; left: 20px; background: #16a34a; color: #fff; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 0 0 6px 6px; letter-spacing: 0.5px; }
+  .selected-badge { display: none; position: absolute; top: 14px; right: 14px; background: #f59e0b; color: #000; font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.5px; }
+  .variant-card.selected .selected-badge { display: block; }
+  .variant-num { font-size: 10px; color: #555; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .variant-name { font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+  .variant-formula { font-size: 12px; color: #999; line-height: 1.6; margin-bottom: 16px; font-style: italic; border-left: 2px solid #2a2a2a; padding-left: 10px; }
+  .criteria-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+  .criteria-label { font-size: 11px; color: #666; }
+  .stars-wrap { display: flex; gap: 2px; }
+  .star { font-size: 12px; }
+  .star.on { color: #f59e0b; }
+  .star.off { color: #222; }
+  .divider { border: none; border-top: 1px solid #1e1e1e; margin: 14px 0; }
+  .pro { font-size: 11px; color: #4ade80; margin-bottom: 5px; }
+  .con { font-size: 11px; color: #f87171; }
+  .pro::before { content: '✅ '; }
+  .con::before { content: '⚠️ '; }
+
+  /* ENTSCHEIDUNGSHELFER */
+  .decision-box { background: #141414; border: 1px solid #222; border-radius: 12px; padding: 20px; }
+  .decision-q { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 14px; }
+  .opt-btn { width: 100%; background: #1a1a1a; border: 1px solid #2a2a2a; color: #bbb; padding: 12px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; text-align: left; transition: all 0.15s; margin-bottom: 8px; display: block; }
+  .opt-btn:hover { background: #222; border-color: #444; }
+  .opt-btn.active { background: #140f00; border-color: #f59e0b; color: #fbbf24; }
+
+  /* EMPFEHLUNG */
+  .rec-box { background: linear-gradient(135deg, #140f00, #0a0800); border: 1px solid #f59e0b33; border-radius: 12px; padding: 22px; margin-top: 20px; display: none; }
+  .rec-box.show { display: block; }
+  .rec-title { font-size: 17px; font-weight: 800; color: #f59e0b; margin-bottom: 10px; }
+  .rec-body { font-size: 13px; color: #ccc; line-height: 1.8; margin-bottom: 16px; }
+  .steps { display: flex; flex-direction: column; gap: 8px; }
+  .step { display: flex; gap: 12px; align-items: flex-start; }
+  .step-n { background: #f59e0b; color: #000; font-weight: 800; font-size: 11px; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-t { font-size: 12px; color: #aaa; line-height: 1.6; padding-top: 2px; }
+
+  /* NÄCHSTE PHASE */
+  .phase-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .phase-card { background: #141414; border: 1px solid #222; border-radius: 10px; padding: 16px; }
+  .phase-when { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; font-weight: 700; }
+  .phase-content { font-size: 12px; color: #bbb; line-height: 1.6; }
+  .phase-card.highlight { border-color: #f59e0b44; background: #140f00; }
+  .phase-when.gold { color: #f59e0b; }
+
+  /* FOOTER */
+  .footer { margin-top: 36px; padding-top: 20px; border-top: 1px solid #161616; display: flex; justify-content: space-between; align-items: flex-end; }
+  .footer-brand { font-size: 14px; font-weight: 800; color: #fff; }
+  .footer-tagline { font-size: 11px; color: #444; margin-top: 4px; }
+  .footer-contact { font-size: 11px; color: #444; text-align: right; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚡ Entscheidungsmatrix — KeNg Labs</h1>
+  <p class="subtitle">Phase 2 → Phase 3 · 21 validierte Umfrage-Antworten · Mai 2026 · Vertraulich</p>
+  <div class="context-box">
+    <strong>Für den Account Manager:</strong> Kevin hat in Phase 2 eine vollständige Marktforschungs-Umfrage in der Beauty- & Gesundheitsbranche durchgeführt. 21 Antworten, überwiegend Solo-Selbstständige aus dem Bereich Lashes, PMU und Kosmetik. Ziel: Winning Problem identifizieren, Positionierung finalisieren und Phase 3 einleiten. Die Daten zeigen ein klares Bild — siehe unten.
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="section-title">📊 Übersicht auf einen Blick</div>
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-value">21</div>
+    <div class="kpi-label">Validierte Umfrage-Antworten</div>
+    <div class="kpi-sub">↑ +9 seit letzter Auswertung</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value">86%</div>
+    <div class="kpi-label">Mission-Score 9–10 / 10</div>
+    <div class="kpi-sub">Hochmotivierte Zielgruppe</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value">71%</div>
+    <div class="kpi-label">Bereit für Kontakt (Ja + Vielleicht)</div>
+    <div class="kpi-sub">15 von 21 offen</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-value">67%</div>
+    <div class="kpi-label">KI-Offenheit Score 6–10</div>
+    <div class="kpi-sub">Von denen die geantwortet haben</div>
+  </div>
+</div>
+
+<!-- SCHMERZPUNKT RANKING -->
+<div class="section-title">🔥 Schmerzpunkt-Ranking — 21 Antworten</div>
+<table class="pain-table">
+  <thead>
+    <tr><th>#</th><th>Schmerzpunkt</th><th>Nennungen</th><th>Anteil</th><th>Verteilung</th><th>Zahlungsbereitschaft</th><th>Dringlichkeit</th></tr>
+  </thead>
+  <tbody>
+    <tr class="winner">
+      <td><span class="rank-badge">🥇</span></td>
+      <td><strong>Social Media & Sichtbarkeit</strong></td>
+      <td><strong>15 / 21</strong></td>
+      <td>71%</td>
+      <td><div class="bar-wrap"><div class="bar b1"></div></div></td>
+      <td><span class="tag tag-fire">🔥 Sehr hoch</span></td>
+      <td><span class="tag tag-fire">Sofort</span></td>
+    </tr>
+    <tr>
+      <td><span class="rank-badge">🥈</span></td>
+      <td>Zu wenig neue Kunden</td>
+      <td>13 / 21</td>
+      <td>62%</td>
+      <td><div class="bar-wrap"><div class="bar b2"></div></div></td>
+      <td><span class="tag tag-high">Hoch</span></td>
+      <td><span class="tag tag-fire">Sofort</span></td>
+    </tr>
+    <tr>
+      <td><span class="rank-badge">🥉</span></td>
+      <td>Fehlende Systeme & Abläufe</td>
+      <td>9 / 21</td>
+      <td>43%</td>
+      <td><div class="bar-wrap"><div class="bar b3"></div></div></td>
+      <td><span class="tag tag-high">Hoch</span></td>
+      <td><span class="tag tag-high">Bald</span></td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Tagesgeschäft — keine Zeit für Wachstum</td>
+      <td>8 / 21</td>
+      <td>38%</td>
+      <td><div class="bar-wrap"><div class="bar b4"></div></div></td>
+      <td><span class="tag tag-med">Mittel</span></td>
+      <td><span class="tag tag-high">Bald</span></td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>Kundenkommunikation & Termine</td>
+      <td>4 / 21</td>
+      <td>19%</td>
+      <td><div class="bar-wrap"><div class="bar b5"></div></div></td>
+      <td><span class="tag tag-med">Mittel</span></td>
+      <td><span class="tag tag-med">Später</span></td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Kundenbindung & Wiederkehrer</td>
+      <td>4 / 21</td>
+      <td>19%</td>
+      <td><div class="bar-wrap"><div class="bar b6"></div></div></td>
+      <td><span class="tag tag-low">Niedrig</span></td>
+      <td><span class="tag tag-low">Später</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- SOCIAL MEDIA DEEP DIVE -->
+<div class="section-title">📱 Social Media — Was genau bremst sie?</div>
+<div class="sm-grid">
+  <div class="sm-card">
+    <div class="sm-title">Problem-Tiefe</div>
+    <div class="sm-row">
+      <span class="sm-label">Keine Zeit für Content</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:100%"></div></div>
+      <span class="sm-count">11</span>
+    </div>
+    <div class="sm-row">
+      <span class="sm-label">Niemand für Videos/Fotos</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:55%"></div></div>
+      <span class="sm-count">6</span>
+    </div>
+    <div class="sm-row">
+      <span class="sm-label">Werbung zu teuer & bringt nichts</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:45%"></div></div>
+      <span class="sm-count">5</span>
+    </div>
+    <div class="sm-row">
+      <span class="sm-label">Algorithmus unbekannt</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:36%"></div></div>
+      <span class="sm-count">4</span>
+    </div>
+    <div class="sm-row">
+      <span class="sm-label">Poste aber wächst nicht</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:27%"></div></div>
+      <span class="sm-count">3</span>
+    </div>
+    <div class="sm-row">
+      <span class="sm-label">Weiß nicht was posten</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:18%"></div></div>
+      <span class="sm-count">2</span>
+    </div>
+  </div>
+  <div class="sm-card">
+    <div class="sm-title">Was sie zuerst automatisieren würden</div>
+    <div class="sm-row">
+      <span class="sm-label">📸 Content-Erstellung Social Media</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:100%"></div></div>
+      <span class="sm-count">10</span>
+    </div>
+    <div class="sm-row">
+      <span class="sm-label">🔄 Wiedergewinnungs-Nachrichten</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:70%"></div></div>
+      <span class="sm-count">7</span>
+    </div>
+    <div class="sm-row">
+      <span class="sm-label">⭐ Bewertungen einsammeln</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:70%"></div></div>
+      <span class="sm-count">7</span>
+    </div>
+    <div class="sm-row">
+      <span class="sm-label">📣 Angebote & Aktionen versenden</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:50%"></div></div>
+      <span class="sm-count">5</span>
+    </div>
+    <div class="sm-row">
+      <span class="sm-label">💬 Kundenanfragen WhatsApp/IG</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:50%"></div></div>
+      <span class="sm-count">5</span>
+    </div>
+    <div class="sm-row">
+      <span class="sm-label">📅 Terminbuchung & Erinnerungen</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:30%"></div></div>
+      <span class="sm-count">3</span>
+    </div>
+  </div>
+</div>
+
+<!-- KI READINESS -->
+<div class="section-title">🤖 KI-Bereitschaft der Zielgruppe</div>
+<div class="ki-grid">
+  <div class="ki-card">
+    <div class="ki-value ki-high">8</div>
+    <div class="ki-label">Score 8–10<br>Sofort bereit</div>
+  </div>
+  <div class="ki-card">
+    <div class="ki-value ki-med">3</div>
+    <div class="ki-label">Score 6–7<br>Offen, aber zögerlich</div>
+  </div>
+  <div class="ki-card">
+    <div class="ki-value ki-low">2</div>
+    <div class="ki-label">Score unter 6<br>Skeptisch</div>
+  </div>
+</div>
+<p style="font-size:11px; color:#444; margin-top:8px;">* 8 haben diese Frage nicht beantwortet — bei der KI-Offenheit also von 13 Antworten ausgehen</p>
+
+<!-- WEITERBILDUNG -->
+<div class="section-title">📚 Weiterbildungs-Signal — Ökosystem-Potenzial</div>
+<div class="wb-grid">
+  <div class="wb-card">
+    <div class="wb-value">15</div>
+    <div class="wb-label">Besuchen selbst Schulungen & Coachings</div>
+  </div>
+  <div class="wb-card">
+    <div class="wb-value">14</div>
+    <div class="wb-label">Wollen Wissen als Kurs weitergeben</div>
+  </div>
+  <div class="wb-card">
+    <div class="wb-value">5</div>
+    <div class="wb-label">Wollen Studio auf nächstes Level bringen</div>
+  </div>
+  <div class="wb-card">
+    <div class="wb-value">3</div>
+    <div class="wb-label">Haben bereits eigene Academy</div>
+  </div>
+</div>
+<p style="font-size:11px; color:#555; margin-top:8px; line-height:1.6;">💡 <strong style="color:#888">Insight:</strong> 67% wollen ihr Wissen irgendwann weitergeben — das validiert das Ökosystem-Konzept als langfristige Vision.</p>
+
+<!-- POSITIONIERUNGS VARIANTEN -->
+<div class="section-title">🎯 Die 3 Positionierungs-Varianten</div>
+<div class="variants">
+  <div class="variant-card recommended" onclick="selectV(1,this)">
+    <div class="rec-badge">DATEN-EMPFEHLUNG</div>
+    <div class="selected-badge">✓ TENDENZ</div>
+    <div class="variant-num" style="margin-top:14px">Variante 01</div>
+    <div class="variant-name">KI-Content & Sichtbarkeit</div>
+    <div class="variant-formula">"Ich helfe inhabergeführten Beauty-Studios, mit KI automatisch sichtbar zu werden und neue Kunden zu gewinnen — ohne dass die Inhaberin täglich selbst Content erstellen muss."</div>
+    <div class="criteria-row"><span class="criteria-label">Markt-Fit</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Umsetzbarkeit</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Differenzierung</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span><span class="star off">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Zahlungsbereitschaft</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Speed to first €</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span></div></div>
+    <hr class="divider">
+    <div class="pro">71% nennen Social Media als #1 Schmerz</div>
+    <div class="con">Social-Media-Markt hat viel Konkurrenz</div>
+  </div>
+  <div class="variant-card" onclick="selectV(2,this)">
+    <div class="selected-badge">✓ TENDENZ</div>
+    <div class="variant-num">Variante 02</div>
+    <div class="variant-name">Komplett-Autopilot</div>
+    <div class="variant-formula">"Ich stelle Beauty-Studios auf Autopilot — Social Media, Kundenkommunikation und Termine laufen automatisch, die Inhaberin konzentriert sich aufs Handwerk."</div>
+    <div class="criteria-row"><span class="criteria-label">Markt-Fit</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Umsetzbarkeit</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span><span class="star off">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Differenzierung</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Zahlungsbereitschaft</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Speed to first €</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span><span class="star off">★</span></div></div>
+    <hr class="divider">
+    <div class="pro">Höchste Zahlungsbereitschaft & Alleinstellung</div>
+    <div class="con">Komplexer zu liefern — Upsell nach Proof</div>
+  </div>
+  <div class="variant-card" onclick="selectV(3,this)">
+    <div class="selected-badge">✓ TENDENZ</div>
+    <div class="variant-num">Variante 03</div>
+    <div class="variant-name">KI-Ökosystem Beauty</div>
+    <div class="variant-formula">"Ich helfe Beauty-Experten und Studios, mit KI sichtbar zu werden und ihr Wissen zu skalieren — als Content, als Schulung, als Community."</div>
+    <div class="criteria-row"><span class="criteria-label">Markt-Fit</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span><span class="star off">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Umsetzbarkeit</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Differenzierung</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Zahlungsbereitschaft</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span><span class="star off">★</span></div></div>
+    <div class="criteria-row"><span class="criteria-label">Speed to first €</span><div class="stars-wrap"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star off">★</span></div></div>
+    <hr class="divider">
+    <div class="pro">67% wollen Wissen weitergeben — validiert Vision</div>
+    <div class="con">Zwei Zielgruppen = komplexeres Messaging</div>
+  </div>
+</div>
+
+<!-- ENTSCHEIDUNGSHELFER -->
+<div class="section-title">🤔 Entscheidungshelfer für den AM-Call</div>
+<div class="decision-box">
+  <div class="decision-q">Was ist das primäre Ziel in den nächsten 60 Tagen?</div>
+  <button class="opt-btn" onclick="selectO(this,1)">🚀 Schnellster Weg zum ersten zahlenden Kunden → Variante 1</button>
+  <button class="opt-btn" onclick="selectO(this,2)">💰 Höchster Preis & stärkste Alleinstellung → Variante 2 (nach Proof via V1)</button>
+  <button class="opt-btn" onclick="selectO(this,3)">🌐 Ökosystem-Vision früh etablieren → Variante 3</button>
+</div>
+
+<div class="rec-box" id="recBox">
+  <div class="rec-title" id="recTitle"></div>
+  <div class="rec-body" id="recBody"></div>
+  <div class="steps" id="recSteps"></div>
+</div>
+
+<!-- NÄCHSTE PHASE -->
+<div class="section-title">📍 Phase 3 — Roadmap nach dem AM-Call</div>
+<div class="phase-grid">
+  <div class="phase-card highlight">
+    <div class="phase-when gold">Sofort — AM-Call</div>
+    <div class="phase-content">Positionierung final fixieren · Variante wählen · Winning Problem bestätigen</div>
+  </div>
+  <div class="phase-card">
+    <div class="phase-when">Woche 1–2</div>
+    <div class="phase-content">Testkunde aus 15 warmen Kontakten onboarden · Pilot-System aufbauen · Live schalten</div>
+  </div>
+  <div class="phase-card">
+    <div class="phase-when">Woche 3–4</div>
+    <div class="phase-content">Ergebnisse dokumentieren · Testimonial sichern · 299€ Einrichtung für Testkunde 2+</div>
+  </div>
+  <div class="phase-card">
+    <div class="phase-when">Ziel 60 Tage</div>
+    <div class="phase-content">1.500€ Monatsumsatz · 2–3 zahlende Kunden · Proof für Skalierung Phase 4</div>
+  </div>
+</div>
+
+<div class="footer">
+  <div>
+    <div class="footer-brand">KeNg Labs · Duong Kevin Nguyen</div>
+    <div class="footer-tagline">Klare Abläufe. Volle Kontrolle. Planbares Wachstum. · Mai 2026 · Vertraulich</div>
+  </div>
+  <div class="footer-contact">
+    📱 +49 162 3803742<br>
+    📸 @keng_freedom<br>
+    ✉️ duong-kevin.nguyen@kenglabs.com
+  </div>
+</div>
+
+<script>
+  const recData = {
+    1: {
+      title: '⚡ Empfehlung: Variante 1 — KI-Content & Sichtbarkeit',
+      body: '71% der Befragten nennen Social Media als größten Schmerz. "Keine Zeit für Content" ist das meistgenannte Einzel-Problem (11 von 21). Das ist dein Einstiegspunkt. KI-gestützter Content ist 2025/26 der Trend — und Kevin ist früh dran in der Beauty-Nische.',
+      steps: [
+        'Testkunde mit KI-Bereitschaft 8–10 auswählen (z.B. Zeinab 10/10, Romina 10/10)',
+        'Pilot-Angebot: KI erstellt 30 Tage automatisch Content → kostenlos gegen Testimonial',
+        'Ergebnisse messen: Reichweite, neue Anfragen, Zeitersparnis dokumentieren',
+        'Nach Proof: 299€ Einrichtung + Monatsabo für nächste Kunden'
+      ]
+    },
+    2: {
+      title: '💰 Empfehlung: Variante 2 — Komplett-Autopilot',
+      body: 'Stärkstes Angebot, höchste Zahlungsbereitschaft. Aber komplex zu liefern als Erstangebot. Strategie: Mit Variante 1 (Content) starten → nach erstem Proof auf Variante 2 upsellen. Das ist der natürliche Wachstumspfad.',
+      steps: [
+        'Zuerst: Content-Automatisierung als Einstieg (Variante 1)',
+        'Nach 30 Tagen Proof: Komplett-Paket vorstellen',
+        'Preis: 299€ Einrichtung + 199–499€ Monatsabo je nach Umfang',
+        'Upsell-Moment: "Jetzt läuft dein Content — soll ich auch Termine und Kommunikation übernehmen?"'
+      ]
+    },
+    3: {
+      title: '🌐 Empfehlung: Variante 3 — KI-Ökosystem Beauty',
+      body: '67% wollen ihr Wissen irgendwann weitergeben — das validiert die langfristige Vision. Aber: Zu früh als Hauptangebot. Empfehlung: V1 als Einstieg, V3 als Langzeit-Roadmap ab Phase 3–4 etablieren.',
+      steps: [
+        'Studios als Primärzielgruppe jetzt behalten',
+        'Experten-Segment: Liste anlegen, für Phase 3–4 aktivieren',
+        'Vietnam-Community & Tribe als Early Adopters für Ökosystem nutzen',
+        'Ökosystem-Vision im AM-Call als Langzeit-Roadmap vorstellen'
+      ]
+    }
+  };
+
+  function selectV(num, el) {
+    document.querySelectorAll('.variant-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    showRec(num);
+  }
+
+  function selectO(el, num) {
+    document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    showRec(num);
+  }
+
+  function showRec(num) {
+    const box = document.getElementById('recBox');
+    const d = recData[num];
+    document.getElementById('recTitle').textContent = d.title;
+    document.getElementById('recBody').textContent = d.body;
+    document.getElementById('recSteps').innerHTML = d.steps.map((s,i) =>
+      `<div class="step"><div class="step-n">${i+1}</div><div class="step-t">${s}</div></div>`
+    ).join('');
+    box.classList.add('show');
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+</script>
+</body>
+</html>
